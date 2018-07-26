@@ -22,7 +22,8 @@
 ## artifact_modes: types of artifacts to consider in the orientation bias filter (optional)
 ## m2_extra_args, m2_extra_filtering_args: additional arguments for Mutect2 calling and filtering (optional)
 ## split_intervals_extra_args: additional arguments for splitting intervals before scattering (optional)
-## run_orientation_bias_filter: if true, run the orientation bias filter post-processing step (optional, true by default)
+## run_orientation_bias_filter: (deprecated) if true, run the orientation bias filter (optional)
+## run_orientation_bias_mixture_model_filter: if true, filter orientation bias sites based on the posterior probabilities computed by the read orientation artifact mixture model (optional)
 ## run_oncotator: if true, annotate the M2 VCFs using oncotator (to produce a TCGA MAF).  Important:  This requires a
 ##                   docker image and should  not be run in environments where docker is unavailable (e.g. SGE cluster on
 ##                   a Broad on-prem VM).  Access to docker hub is also required, since the task downloads a public docker image.
@@ -85,17 +86,12 @@ workflow Mutect2 {
     File? variants_for_contamination_index
     File? realignment_index_bundle
     String? realignment_extra_args
-<<<<<<< HEAD
     Boolean? run_orientation_bias_filter
-=======
-    Boolean? run_old_orientation_bias_filter
-    Boolean run_old_ob_filter = select_first([run_old_orientation_bias_filter, false])
-    Boolean? run_new_orientation_bias_filter
-    Boolean run_new_ob_filter = select_first([run_new_orientation_bias_filter, false])
+    Boolean run_ob_filter = select_first([run_orientation_bias_filter, false]) && (length(select_first([artifact_modes, ["G/T", "C/T"]])) > 0)
+    Boolean? run_orientation_bias_mixture_model_filter
+    Boolean run_ob_mm_filter = select_first([run_orientation_bias_mixture_model_filter, true])
     File? new_ob_filter_training_intervals
->>>>>>> Review edits
     Array[String]? artifact_modes
-    Boolean run_ob_filter = select_first([run_orientation_bias_filter, true]) && (length(select_first([artifact_modes, ["G/T", "C/T"]])) > 0)
     File? tumor_sequencing_artifact_metrics
     String? m2_extra_args
     String? m2_extra_filtering_args
@@ -265,7 +261,7 @@ workflow Mutect2 {
         }
     }
 
-    if (run_old_ob_filter && !defined(tumor_sequencing_artifact_metrics)) {
+    if (run_ob_filter && !defined(tumor_sequencing_artifact_metrics)) {
         call CollectSequencingArtifactMetrics {
             input:
                 gatk_docker = gatk_docker,
@@ -280,7 +276,7 @@ workflow Mutect2 {
         }
     }
 
-    if (run_new_ob_filter) {
+    if (run_ob_mm_filter) {
         call CollectF1R2Counts {
             input:
                 gatk_docker = gatk_docker,
@@ -345,7 +341,7 @@ workflow Mutect2 {
             disk_space = ceil(size(MergeVCFs.merged_vcf, "GB") * small_input_to_output_multiplier) + disk_pad
     }
 
-    if (run_old_ob_filter) {
+    if (run_ob_filter) {
         # Get the metrics either from the workflow input or CollectSequencingArtifactMetrics if no workflow input is provided
         File input_artifact_metrics = select_first([tumor_sequencing_artifact_metrics, CollectSequencingArtifactMetrics.pre_adapter_metrics])
 
@@ -753,6 +749,7 @@ task CollectF1R2Counts {
     File? intervals
 
     # runtime
+    Int? max_retries
     String gatk_docker
     Int? mem
     Int? preemptible_attempts
@@ -782,6 +779,7 @@ task CollectF1R2Counts {
         memory: machine_mem + " MB"
         disks: "local-disk " + select_first([disk_space, 100]) + if use_ssd then " SSD" else " HDD"
         preemptible: select_first([preemptible_attempts, 10])
+        maxRetries: select_first([max_retries, 3])
         cpu: select_first([cpu, 1])
     }
 
@@ -802,6 +800,7 @@ task LearnReadOrientationModel {
     File? intervals
 
     # runtime
+    Int? max_retries
     String gatk_docker
     Int? mem
     Int? preemptible_attempts
@@ -818,12 +817,10 @@ task LearnReadOrientationModel {
         export GATK_LOCAL_JAR=${default="/root/gatk.jar" gatk_override}
         
         gatk --java-options "-Xmx${command_mem}m" LearnReadOrientationModel \
-        -R ${ref_fasta} \
         -alt-table ${alt_table} 
         -ref-hist ${ref_histogram} \
         -alt-hist ${alt_histograms} \
-        -O ${tumor_sample_name}-hyperparameters.tsv \
-        -I ${tumor_bam} -O "${tumor_sample_name}-artifact-prior-table.tsv"
+        -O "${tumor_sample_name}-artifact-prior-table.tsv"
     }
 
     runtime {
@@ -832,6 +829,7 @@ task LearnReadOrientationModel {
         memory: machine_mem + " MB"
         disks: "local-disk " + select_first([disk_space, 100]) + if use_ssd then " SSD" else " HDD"
         preemptible: select_first([preemptible_attempts, 10])
+        maxRetries: select_first([max_retries, 3])
         cpu: select_first([cpu, 1])
     }
 

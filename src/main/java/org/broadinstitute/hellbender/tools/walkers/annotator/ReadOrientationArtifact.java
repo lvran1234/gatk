@@ -24,7 +24,8 @@ import java.util.*;
 import static org.broadinstitute.hellbender.tools.walkers.readorientation.F1R2FilterConstants.REF_CONTEXT_PADDING;
 
 /**
- * Created by tsato on 10/20/17.
+ * Computes the posterior probability of orientation bias. Uses the prior artifact probability calculated in
+ * {@link LearnReadOrientationModel}
  */
 public class ReadOrientationArtifact extends GenotypeAnnotation implements NonStandardMutectAnnotation {
     private ArtifactPriorCollection artifactPriorCollection;
@@ -104,7 +105,7 @@ public class ReadOrientationArtifact extends GenotypeAnnotation implements NonSt
                 continue;
             }
 
-            // Throw away bases that is below the desired minimum quality
+            // Throw away bases that are below the desired minimum quality
             final OptionalDouble result = BaseQualityRankSumTest.getReadBaseQuality(read, vc.getStart());
             final OptionalInt baseQuality = result.isPresent() ? OptionalInt.of((int) FastMath.round(result.getAsDouble())) : OptionalInt.empty();
             if (! baseQuality.isPresent() || baseQuality.getAsInt() < minimumBaseQuality){

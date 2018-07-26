@@ -14,6 +14,7 @@ import org.broadinstitute.hellbender.tools.walkers.mutect.M2ArgumentCollection;
 import org.broadinstitute.hellbender.tools.walkers.mutect.M2FiltersArgumentCollection;
 import org.broadinstitute.hellbender.tools.walkers.mutect.Mutect2;
 import org.broadinstitute.hellbender.utils.GATKProtectedVariantContextUtils;
+import org.broadinstitute.hellbender.utils.variant.GATKVCFConstants;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -23,13 +24,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.StreamSupport;
-
-import static org.broadinstitute.hellbender.tools.walkers.annotator.ReferenceBases.REFERENCE_BASES_KEY;
-import static org.broadinstitute.hellbender.tools.walkers.readorientation.ReadOrientation.F1R2;
-import static org.broadinstitute.hellbender.tools.walkers.readorientation.ReadOrientation.F2R1;
-import static org.broadinstitute.hellbender.tools.walkers.readorientation.ArtifactState.*;
-
-import static org.broadinstitute.hellbender.utils.variant.GATKVCFConstants.*;
 
 public class ReadOrientationModelIntegrationTest extends CommandLineProgramTest {
     /**
@@ -98,17 +92,17 @@ public class ReadOrientationModelIntegrationTest extends CommandLineProgramTest 
 
 
         // These artifacts have been verified manually
-        // The triple is of type (Position, Observed Orientation, Expected Source of Prior Probability)
+        // The pair is of type (Position, Expected Source of Prior Probability)
         // Prior for e.g. TGA->A F2R1 should come from TCA->T F1R2
         final List<Triple<Integer, ReadOrientation, ArtifactState>> knownArtifacts = Arrays.asList(
-                new ImmutableTriple<>(5296933, F1R2, F1R2_T), // CGT->T F1R2, ref context is not canonical
-                new ImmutableTriple<>(23421079, F2R1, F2R1_G), // CAC->G F2R1
-                new ImmutableTriple<>(34144749, F2R1, F2R1_A), // TGA->A F2R1, ref context is not canonical
-                new ImmutableTriple<>(62165528, F1R2, F1R2_A)); // CGC->A F1R2
+                new ImmutableTriple<>(5296933, ReadOrientation.F1R2, ArtifactState.F1R2_T), // CGT->T F1R2, ref context is not canonical
+                new ImmutableTriple<>(23421079, ReadOrientation.F2R1, ArtifactState.F2R1_G), // CAC->G F2R1
+                new ImmutableTriple<>(34144749, ReadOrientation.F2R1, ArtifactState.F2R1_A), // TGA->A F2R1, ref context is not canonical
+                new ImmutableTriple<>(62165528, ReadOrientation.F1R2, ArtifactState.F1R2_A)); // CGC->A F1R2
 
         for (final Triple<Integer, ReadOrientation, ArtifactState> artifact : knownArtifacts) {
             final int position = artifact.getLeft();
-            final ReadOrientation observedOrientation = artifact.getMiddle();
+            final ReadOrientation expectedReadOrientaiton = artifact.getMiddle();
             final ArtifactState expectedSourceOfPrior = artifact.getRight();
 
             Optional<VariantContext> variant = StreamSupport.stream(new FeatureDataSource<VariantContext>(filteredVcf).spliterator(), false)
@@ -116,19 +110,17 @@ public class ReadOrientationModelIntegrationTest extends CommandLineProgramTest 
             Assert.assertTrue(variant.isPresent());
 
             // Check that the correct prior was added to the format field by Mutect
-            final double prior = GATKProtectedVariantContextUtils.getAttributeAsDouble(variant.get().getGenotype(0), ROF_PRIOR_KEY, -1.0);
-            final String refBases = variant.get().getAttributeAsString(REFERENCE_BASES_KEY, "");
+            final double prior = GATKProtectedVariantContextUtils.getAttributeAsDouble(variant.get().getGenotype(0), GATKVCFConstants.ROF_PRIOR_KEY, -1.0);
+            final String refBases = variant.get().getAttributeAsString(ReferenceBases.REFERENCE_BASES_KEY, "");
             final String refContext = ReferenceBases.getNMiddleBases(refBases, F1R2FilterConstants.REFERENCE_CONTEXT_SIZE);
             final ArtifactPrior ap = artifactPriorCollection.get(refContext).get();
 
             Assert.assertEquals(prior, ap.getPi(expectedSourceOfPrior), 1e-3);
 
-            final String expectedFilter = observedOrientation == F1R2 ? F1R2_ARTIFACT_FILTER_NAME : F2R1_ARTIFACT_FILTER_NAME;
-
             // Check that the expected filters were applied
-            Assert.assertTrue(variant.get().getFilters().contains(expectedFilter));
-            Assert.assertEquals(GATKProtectedVariantContextUtils.getAttributeAsString(variant.get().getGenotype(0), ROF_TYPE_KEY, null),
-                    observedOrientation.toString());
+            Assert.assertTrue(variant.get().getFilters().contains(GATKVCFConstants.READ_ORIENTATION_ARTIFACT_FILTER_NAME));
+            Assert.assertEquals(GATKProtectedVariantContextUtils.getAttributeAsString(variant.get().getGenotype(0),
+                    GATKVCFConstants.ROF_TYPE_KEY, null), expectedReadOrientaiton.toString());
         }
     }
 }

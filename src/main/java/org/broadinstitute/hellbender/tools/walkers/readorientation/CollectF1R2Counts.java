@@ -3,7 +3,6 @@ package org.broadinstitute.hellbender.tools.walkers.readorientation;
 import com.google.common.primitives.Ints;
 import htsjdk.samtools.metrics.MetricsFile;
 import htsjdk.samtools.util.Histogram;
-import org.apache.commons.math3.util.Pair;
 import org.broadinstitute.barclay.argparser.Argument;
 import org.broadinstitute.barclay.argparser.CommandLineProgramProperties;
 import org.broadinstitute.hellbender.cmdline.programgroups.CoverageAnalysisProgramGroup;
@@ -28,7 +27,18 @@ import static org.broadinstitute.hellbender.tools.walkers.readorientation.ReadOr
 import static org.broadinstitute.hellbender.tools.walkers.readorientation.F1R2FilterConstants.*;
 
 /**
+ * At each genomic locus, count the number of F1R2/F2R1 alt reads.
  * {@link LearnReadOrientationModel} takes in the tsv output of this tool
+ *
+ * <h3>Usage Example</h3>
+ *
+ * gatk CollectF1R2Counts \
+ *   -R GRCh38.fasta \
+ *   -I tumor.bam \
+ *   -O tumor-artifact-prior-table.tsv \
+ *   -alt-table tumor-alt.tsv \
+ *   -ref-hist tumor-ref.metrics \
+ *   -alt-hist tumor-alt.metrics
  */
 
 @CommandLineProgramProperties(

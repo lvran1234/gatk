@@ -59,8 +59,7 @@ public class GATKVCFHeaderLines {
         addFilterLine(new VCFFilterHeaderLine(READ_POSITION_FILTER_NAME, "median distance of alt variants from end of reads"));
         addFilterLine(new VCFFilterHeaderLine(CONTAMINATION_FILTER_NAME, "contamination"));
         addFilterLine(new VCFFilterHeaderLine(DUPLICATED_EVIDENCE_FILTER_NAME, "evidence for alt allele is overrepresented by apparent duplicates"));
-        addFilterLine(new VCFFilterHeaderLine(F1R2_ARTIFACT_FILTER_NAME, "F1R2 read orientation bias artifact"));
-        addFilterLine(new VCFFilterHeaderLine(F2R1_ARTIFACT_FILTER_NAME, "F2R1 read orientation bias artifact"));
+        addFilterLine(new VCFFilterHeaderLine(READ_ORIENTATION_ARTIFACT_FILTER_NAME, "orientation bias detected by the orientation bias mixture model"));
 
 
         addFormatLine(new VCFFormatHeaderLine(ALLELE_BALANCE_KEY, 1, VCFHeaderLineType.Float, "Allele balance for each het genotype"));

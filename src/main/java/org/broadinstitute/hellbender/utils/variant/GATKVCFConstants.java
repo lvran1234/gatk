@@ -157,8 +157,7 @@ public final class GATKVCFConstants {
     public final static String MEDIAN_FRAGMENT_LENGTH_DIFFERENCE_FILTER_NAME = "fragment_length";
     public final static String READ_POSITION_FILTER_NAME =                      "read_position";
     public final static String CONTAMINATION_FILTER_NAME =                      "contamination";
-    public final static String F1R2_ARTIFACT_FILTER_NAME =                   "f1r2_artifact";
-    public final static String F2R1_ARTIFACT_FILTER_NAME =                   "f2r1_artifact";
+    public final static String READ_ORIENTATION_ARTIFACT_FILTER_NAME =          "read_orientation_artifact";
 
     public static final List<String> MUTECT_FILTER_NAMES = Arrays.asList(STR_CONTRACTION_FILTER_NAME,
             PON_FILTER_NAME, CLUSTERED_EVENTS_FILTER_NAME, TUMOR_LOD_FILTER_NAME, GERMLINE_RISK_FILTER_NAME,
@@ -166,7 +165,7 @@ public final class GATKVCFConstants {
             MEDIAN_BASE_QUALITY_FILTER_NAME, MEDIAN_MAPPING_QUALITY_FILTER_NAME,
             MEDIAN_FRAGMENT_LENGTH_DIFFERENCE_FILTER_NAME,
             READ_POSITION_FILTER_NAME, CONTAMINATION_FILTER_NAME, DUPLICATED_EVIDENCE_FILTER_NAME,
-            F1R2_ARTIFACT_FILTER_NAME, F2R1_ARTIFACT_FILTER_NAME);
+            READ_ORIENTATION_ARTIFACT_FILTER_NAME);
 
     // Symbolic alleles
     public final static String SYMBOLIC_ALLELE_DEFINITION_HEADER_TAG = "ALT";

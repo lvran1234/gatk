@@ -13,7 +13,6 @@ import org.broadinstitute.hellbender.utils.IndexRange;
 import org.broadinstitute.hellbender.utils.MathUtils;
 import org.broadinstitute.hellbender.utils.QualityUtils;
 import org.broadinstitute.hellbender.utils.variant.GATKVCFConstants;
-import org.broadinstitute.hellbender.tools.walkers.readorientation.ReadOrientation;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -314,13 +313,10 @@ public class Mutect2FilteringEngine {
             filterResult.setReadOrientationPosterior(artifactPosterior);
             return;
         } else {
-            final ReadOrientation artifactType = ReadOrientation.valueOf(GATKProtectedVariantContextUtils.getAttributeAsString(
-                    tumorGenotype, GATKVCFConstants.ROF_TYPE_KEY, null));
-            final double threshold = filterSummary.get().getFilterStats(GATKVCFConstants.F1R2_ARTIFACT_FILTER_NAME).getThreshold();
+            final double threshold = filterSummary.get().getFilterStats(GATKVCFConstants.READ_ORIENTATION_ARTIFACT_FILTER_NAME).getThreshold();
 
             if (artifactPosterior > threshold){
-                filterResult.addFilter(artifactType == ReadOrientation.F1R2 ?
-                        GATKVCFConstants.F1R2_ARTIFACT_FILTER_NAME : GATKVCFConstants.F2R1_ARTIFACT_FILTER_NAME);
+                filterResult.addFilter(GATKVCFConstants.READ_ORIENTATION_ARTIFACT_FILTER_NAME);
             }
         }
     }
@@ -377,9 +373,9 @@ public class Mutect2FilteringEngine {
             final double expectedFPR = (cumulativeExpectedFPs + posterior) / (i + 1);
             if (expectedFPR > requestedFPR){
                 return i > 0 ?
-                        new Mutect2FilterSummary.FilterStats(GATKVCFConstants.F1R2_ARTIFACT_FILTER_NAME, posteriors[i-1],
+                        new Mutect2FilterSummary.FilterStats(GATKVCFConstants.READ_ORIENTATION_ARTIFACT_FILTER_NAME, posteriors[i-1],
                                 cumulativeExpectedFPs, i-1, cumulativeExpectedFPs/i, requestedFPR) :
-                        new Mutect2FilterSummary.FilterStats(GATKVCFConstants.F1R2_ARTIFACT_FILTER_NAME, thresholdForFilteringAll,
+                        new Mutect2FilterSummary.FilterStats(GATKVCFConstants.READ_ORIENTATION_ARTIFACT_FILTER_NAME, thresholdForFilteringAll,
                                 0.0, 0, 0.0, requestedFPR);
             }
 
@@ -387,7 +383,7 @@ public class Mutect2FilteringEngine {
         }
 
         // If the expected FP rate never exceeded the max tolerable value, then we can let everything pass
-        return new Mutect2FilterSummary.FilterStats(GATKVCFConstants.F1R2_ARTIFACT_FILTER_NAME, thresholdForFilteringNone,
+        return new Mutect2FilterSummary.FilterStats(GATKVCFConstants.READ_ORIENTATION_ARTIFACT_FILTER_NAME, thresholdForFilteringNone,
                 cumulativeExpectedFPs, numPassingVariants, cumulativeExpectedFPs/numPassingVariants, requestedFPR);
     }
 
@@ -400,7 +396,7 @@ public class Mutect2FilteringEngine {
                 .toArray();
 
         final Mutect2FilterSummary.FilterStats readOrientationFilterStats = calculateThresholdForReadOrientationFilter(readOrientationPosteriors, requestedFPR);
-        filterSummary.addNewFilterStats(GATKVCFConstants.F1R2_ARTIFACT_FILTER_NAME, readOrientationFilterStats);
+        filterSummary.addNewFilterStats(GATKVCFConstants.READ_ORIENTATION_ARTIFACT_FILTER_NAME, readOrientationFilterStats);
 
         return filterSummary;
     }
