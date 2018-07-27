@@ -89,7 +89,7 @@ workflow Mutect2 {
     Boolean? run_orientation_bias_filter
     Boolean run_ob_filter = select_first([run_orientation_bias_filter, false]) && (length(select_first([artifact_modes, ["G/T", "C/T"]])) > 0)
     Boolean? run_orientation_bias_mixture_model_filter
-    Boolean run_ob_mm_filter = select_first([run_orientation_bias_mixture_model_filter, true])
+    Boolean run_ob_mm_filter = select_first([run_orientation_bias_mixture_model_filter, false])
     File? new_ob_filter_training_intervals
     Array[String]? artifact_modes
     File? tumor_sequencing_artifact_metrics
