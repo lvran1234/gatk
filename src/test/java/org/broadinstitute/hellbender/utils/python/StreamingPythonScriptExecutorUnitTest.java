@@ -71,7 +71,7 @@ public class StreamingPythonScriptExecutorUnitTest extends GATKBaseTest {
         }
     }
 
-    @Test(groups = "python", dataProvider="supportedPythonVersions", dependsOnMethods = "testPythonExists")
+    @Test(invocationCount=1000, groups = "python", dataProvider="supportedPythonVersions", dependsOnMethods = "testPythonExists")
     public void testStderrOutput(final PythonScriptExecutor.PythonExecutableName executableName) {
         // test write to stderr from python
         final StreamingPythonScriptExecutor<String> streamingPythonExecutor =
