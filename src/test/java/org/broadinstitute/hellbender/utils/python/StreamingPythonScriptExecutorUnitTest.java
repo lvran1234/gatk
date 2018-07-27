@@ -81,8 +81,9 @@ public class StreamingPythonScriptExecutorUnitTest extends GATKBaseTest {
 
         try {
             streamingPythonExecutor.sendSynchronousCommand("import sys" + NL);
-            final ProcessOutput po = streamingPythonExecutor.sendSynchronousCommand(
-                    "sys.stderr.write('error output to stderr\\n')" + NL);
+            streamingPythonExecutor.sendAsynchronousCommand("sys.stderr.write('error output to stderr\\n')" + NL);
+            streamingPythonExecutor.waitForAck();
+            final ProcessOutput po = streamingPythonExecutor.sendSynchronousCommand("sys.stderr.flush()" + NL);
 
             Assert.assertNotNull(po.getStderr());
             Assert.assertNotNull(po.getStderr().getBufferString());
