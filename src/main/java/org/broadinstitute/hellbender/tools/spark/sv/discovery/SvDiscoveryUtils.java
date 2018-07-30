@@ -6,7 +6,7 @@ import htsjdk.variant.vcf.VCFConstants;
 import org.apache.logging.log4j.Logger;
 import org.apache.spark.api.java.JavaRDD;
 import org.broadinstitute.hellbender.exceptions.UserException;
-import org.broadinstitute.hellbender.tools.spark.sv.StructuralVariationDiscoveryArgumentCollection.VariantsDiscoveryFromContigsAlignmentsSparkArgumentCollection;
+import org.broadinstitute.hellbender.tools.spark.sv.StructuralVariationDiscoveryArgumentCollection.DiscoverVariantsFromContigAlignmentsSparkArgumentCollection;
 import org.broadinstitute.hellbender.tools.spark.sv.discovery.inference.BreakpointComplications;
 import org.broadinstitute.hellbender.tools.spark.sv.discovery.inference.NovelAdjacencyAndAltHaplotype;
 import org.broadinstitute.hellbender.tools.spark.sv.utils.SVFileUtils;
@@ -32,7 +32,7 @@ public class SvDiscoveryUtils {
     public static void evaluateIntervalsAndNarls(final List<SVInterval> assembledIntervals,
                                                  final List<NovelAdjacencyAndAltHaplotype> narls,
                                                  final SAMSequenceDictionary referenceSequenceDictionary,
-                                                 final VariantsDiscoveryFromContigsAlignmentsSparkArgumentCollection parameters,
+                                                 final DiscoverVariantsFromContigAlignmentsSparkArgumentCollection parameters,
                                                  final Logger toolLogger) {
         if ( parameters.truthVCF != null ) {
             final SVIntervalTree<String> trueBreakpoints =
@@ -155,6 +155,7 @@ public class SvDiscoveryUtils {
     }
 
     /**
+     * todo: this should be fixed in a new major version of htsjdk
      * this exist because for whatever reason,
      * VC.getAttributeAsStringList() sometimes returns a giant single string, while using
      * VC.getAttributeAsString() gives back an array.....

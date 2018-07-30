@@ -89,7 +89,7 @@ public abstract class SegmentedCpxVariantSimpleVariantExtractor implements Seria
             return reInterpretMultiSegmentsCalls;
         }
 
-        public List<VariantContext> getMergedReInterpretCalls() {
+        public List<VariantContext> getMergedReinterpretedCalls() {
             final ArrayList<VariantContext> merged = new ArrayList<>(reInterpretZeroOrOneSegmentCalls);
             merged.addAll(reInterpretMultiSegmentsCalls);
             return merged;

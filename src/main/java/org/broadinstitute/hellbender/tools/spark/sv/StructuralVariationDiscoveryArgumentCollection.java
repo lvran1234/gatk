@@ -269,12 +269,15 @@ public class StructuralVariationDiscoveryArgumentCollection implements Serializa
 
     public enum SvEvidenceFilterType {DENSITY, XGBOOST}
 
-    public static class VariantsDiscoveryFromContigsAlignmentsSparkArgumentCollection implements Serializable {
+    public static class DiscoverVariantsFromContigAlignmentsSparkArgumentCollection implements Serializable {
         private static final long serialVersionUID = 1L;
 
         public static final int GAPPED_ALIGNMENT_BREAK_DEFAULT_SENSITIVITY = STRUCTURAL_VARIANT_SIZE_LOWER_BOUND; // alignment with gap of size >= 50 will be broken apart.
+
+        // TODO: 7/30/18 the following two values essentially perform the same filtering, except one (CHIMERIC_ALIGNMENTS_HIGHMQ_THRESHOLD) is used in a tool (ContigChimericAlignmentIterativeInterpreter) that is about to be phased out, so move it when the kill switch is flipped
         public static final int CHIMERIC_ALIGNMENTS_HIGHMQ_THRESHOLD = 60;
         public static final int ASSEMBLY_ALIGNMENT_MQ_FILTER_DEFAULT = 30;
+
         public static final int DEFAULT_MIN_ALIGNMENT_LENGTH = 50; // Minimum flanking alignment length filters used when going through contig alignments.
         public static final int DEFAULT_ASSEMBLED_IMPRECISE_EVIDENCE_OVERLAP_UNCERTAINTY = 100;
         public static final int DEFAULT_IMPRECISE_VARIANT_EVIDENCE_THRESHOLD = 7;

@@ -257,8 +257,8 @@ public class AnnotatedVariantProducerUnitTest extends GATKBaseTest {
                                                final List<VariantContext> expectedVariants) {
 
         final Logger localLogger = LogManager.getLogger(AnnotatedVariantProducer.class);
-        final StructuralVariationDiscoveryArgumentCollection.VariantsDiscoveryFromContigsAlignmentsSparkArgumentCollection params =
-                new StructuralVariationDiscoveryArgumentCollection.VariantsDiscoveryFromContigsAlignmentsSparkArgumentCollection();
+        final StructuralVariationDiscoveryArgumentCollection.DiscoverVariantsFromContigAlignmentsSparkArgumentCollection params =
+                new StructuralVariationDiscoveryArgumentCollection.DiscoverVariantsFromContigAlignmentsSparkArgumentCollection();
 
         ReadMetadata metadata = Mockito.mock(ReadMetadata.class);
         when(metadata.getMaxMedianFragmentSize()).thenReturn(300);
