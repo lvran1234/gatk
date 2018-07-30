@@ -54,8 +54,14 @@ public class AltSiteRecord {
 
     public Nucleotide getAltAllele(){ return altAllele; }
 
+
+    /**
+     * Contract: only call this method on an {@link AltSiteRecord} whose reference context is *not* in the
+     * @{link F1R2FilterConstants.CANONICAL_KMERS}. The idea is that this method should be called only to make standard
+     * the non-standard representation of an alt site record.
+     */
     public AltSiteRecord getReverseComplementOfRecord(){
-        Utils.validate(!F1R2FilterConstants.CANONICAL_KMERS.contains(referenceContext), "for consistency, don't make the" +
+        Utils.validate(!F1R2FilterConstants.CANONICAL_KMERS.contains(referenceContext), "for consistency, don't make the " +
                         "revcomp record of a canonical reference context");
         final Nucleotide revCompOfAlt = Nucleotide.complement(altAllele.toBase());
         final int newRefF1R2 = refCount - refF1R2;

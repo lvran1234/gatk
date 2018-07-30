@@ -92,37 +92,35 @@ public class LearnReadOrientationModel extends CommandLineProgram {
                 AltSiteRecord.readAltSiteRecords(altDataTable, defaultInitialListSize).stream()
                         .collect(Collectors.groupingBy(AltSiteRecord::getReferenceContext));
 
-        // Since AGT F1R2 is equivalent to ACT F2R1 (in the sense that the order of bases in the original molecule on which
-        // the artifact befell and what the base changed to is the same)
-
-        // TODO: extract a method to account for reverse complement, and create a test
+        // Since e.g. G->T under AGT F1R2 is equivalent to C->A under ACT F2R1, combine the data
         for (final String refContext : F1R2FilterConstants.CANONICAL_KMERS){
             final String reverseComplement = SequenceUtil.reverseComplement(refContext);
 
+            // Merge ref histograms
             final Histogram<Integer> refHistogram = refHistograms.stream()
                     .filter(h -> h.getValueLabel().equals(refContext))
                     .findFirst().orElseGet(() -> F1R2FilterUtils.createRefHistogram(refContext, maxDepth));
             final Histogram<Integer> refHistogramRevComp = refHistograms.stream()
                     .filter(h -> h.getValueLabel().equals(reverseComplement))
                     .findFirst().orElseGet(() -> F1R2FilterUtils.createRefHistogram(reverseComplement, maxDepth));
+            final Histogram<Integer> combinedRefHistograms = combineRefHistogramWithRC(refContext, refHistogram, refHistogramRevComp, maxDepth);
 
+
+            // Merge alt depth=1 histograms
             final List<Histogram<Integer>> altDepthOneHistogramsForContext = altHistograms.stream()
                     .filter(h -> h.getValueLabel().startsWith(refContext))
                     .collect(Collectors.toList());
-
             final List<Histogram<Integer>> altDepthOneHistogramsRevComp = altHistograms.stream()
                     .filter(h -> h.getValueLabel().startsWith(reverseComplement))
                     .collect(Collectors.toList());
+            final List<Histogram<Integer>> combinedAltHistograms = combineAltDepthOneHistogramWithRC(altDepthOneHistogramsForContext, altDepthOneHistogramsRevComp, maxDepth);
 
-            final List<AltSiteRecord> altDesignMatrix = altDesignMatrixByContext
-                    .getOrDefault(refContext, new ArrayList<>()); // Cannot use Collections.emptyList() here because we might add to it
-            final List<AltSiteRecord> altDesignMatrixRevComp = altDesignMatrixByContext
-                    .getOrDefault(reverseComplement, Collections.emptyList());
+            // Finally, merge the rest of alt records
+            final List<AltSiteRecord> altDesignMatrix = altDesignMatrixByContext.getOrDefault(refContext, new ArrayList<>()); // Cannot use Collections.emptyList() here because the input list must be mutable
+            final List<AltSiteRecord> altDesignMatrixRevComp = altDesignMatrixByContext.getOrDefault(reverseComplement, Collections.emptyList());
             // Warning: the below method will mutate the content of {@link altDesignMatrixRevComp} and append to {@code altDesignMatrix}
             mergeDesignMatrices(altDesignMatrix, altDesignMatrixRevComp);
 
-            final Histogram<Integer> combinedRefHistograms = combineRefHistogramWithRC(refContext, refHistogram, refHistogramRevComp, maxDepth);
-            final List<Histogram<Integer>> combinedAltHistograms = combineAltDepthOneHistogramWithRC(altDepthOneHistogramsForContext, altDepthOneHistogramsRevComp, maxDepth);
 
             if (combinedRefHistograms.getSumOfValues() == 0 || altDesignMatrix.isEmpty()) {
                 logger.info(String.format("Skipping the reference context %s as we didn't find either the ref or alt table for the context", refContext));
@@ -218,8 +216,9 @@ public class LearnReadOrientationModel extends CommandLineProgram {
 
     /**
      * Contract: this method must be called after grouping the design matrices by context.
-     * That is, {@param altDesignMatrix} and {@param altDesigmRevComp} must each be a list of {@link AltSiteRecord}
-     * of a single reference context, and their reference contexts must match up to reverse complement
+     * That is, {@param altDesignMatrix} must be a list of {@link AltSiteRecord} of a single reference context
+     * (which is in {@link F1R2FilterConstants.CANONICAL_KMERS}) and {@param altDesignRevComp} contains only
+     * {@link AltSiteRecord} of its reverse complement.
      */
     @VisibleForTesting
     public static void mergeDesignMatrices(final List<AltSiteRecord> altDesignMatrix, List<AltSiteRecord> altDesignMatrixRevComp){
@@ -235,14 +234,14 @@ public class LearnReadOrientationModel extends CommandLineProgram {
                 Optional.of(altDesignMatrix.get(0).getReferenceContext());
         final Optional<String> revCompContext = altDesignMatrixRevComp.isEmpty() ? Optional.empty() :
                 Optional.of(altDesignMatrixRevComp.get(0).getReferenceContext());
+
+        // If the matrices aren't empty, their reference context much be the reverse complement of each other
         if (refContext.isPresent() && revCompContext.isPresent()){
             Utils.validateArg(refContext.get().equals(SequenceUtil.reverseComplement(revCompContext.get())),
                     "ref context and its rev comp don't match");
         }
 
-        altDesignMatrix.addAll(altDesignMatrixRevComp.stream()
-                .map(AltSiteRecord::getReverseComplementOfRecord)
-                .collect(Collectors.toList()));
+        altDesignMatrix.addAll(altDesignMatrixRevComp.stream().map(AltSiteRecord::getReverseComplementOfRecord).collect(Collectors.toList()));
     }
 
     private MetricsFile<?, Integer> readMetricsFile(File file){

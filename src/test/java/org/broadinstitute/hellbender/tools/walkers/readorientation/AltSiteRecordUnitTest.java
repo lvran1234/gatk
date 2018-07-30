@@ -57,22 +57,26 @@ public class AltSiteRecordUnitTest extends BaseTest {
     @Test
     public void testGetReverseComplement() throws IOException {
         final String referenceContext = "AGC"; // G -> A
-        final Nucleotide altAllele = Nucleotide.A;
         final String revCompContext = "GCT"; // C -> T
+        final Nucleotide revCompAlt = Nucleotide.T;
+        final Nucleotide standardAlt = Nucleotide.A;
         final int refCount = 60;
         final int altCount = 10;
         final int depth = refCount + altCount;
         final int refF1R2 = 15;
         final int altF1R2 = 2;
 
-        final AltSiteRecord record = new AltSiteRecord(referenceContext, refCount, altCount, refF1R2, altF1R2, altAllele);
-        final AltSiteRecord revComp = record.getReverseComplementOfRecord();
+        // Create a reverse comp version of an alt site record and change it into the standard form
+        final AltSiteRecord revComp = new AltSiteRecord(revCompContext, refCount, altCount, refF1R2, altF1R2, revCompAlt);
+        final AltSiteRecord standard = revComp.getReverseComplementOfRecord();
 
-        Assert.assertEquals(revComp.getReferenceContext(), revCompContext);
-        Assert.assertEquals(revComp.getAltAllele(), Nucleotide.T);
-        Assert.assertEquals(revComp.getRefCount(), refCount);
-        Assert.assertEquals(revComp.getAltCount(), altCount);
-        Assert.assertEquals(revComp.getDepth(), depth);
+        Assert.assertEquals(standard.getReferenceContext(), referenceContext);
+        Assert.assertEquals(standard.getAltAllele(), standardAlt);
+        Assert.assertEquals(standard.getRefCount(), refCount);
+        Assert.assertEquals(standard.getAltCount(), altCount);
+        Assert.assertEquals(standard.getAltF1R2(), altCount - altF1R2);
+        Assert.assertEquals(standard.getRefF1R2(), refCount - refF1R2);
+        Assert.assertEquals(standard.getDepth(), depth);
 
     }
 
