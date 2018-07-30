@@ -17,6 +17,7 @@ import org.broadinstitute.hellbender.utils.read.GATKRead;
 import org.broadinstitute.hellbender.utils.read.ReadUtils;
 import org.broadinstitute.hellbender.utils.variant.GATKVCFConstants;
 import org.broadinstitute.hellbender.utils.variant.GATKVCFHeaderLines;
+import org.broadinstitute.hellbender.cmdline.StandardArgumentDefinitions;
 
 import java.io.File;
 import java.util.*;
@@ -60,7 +61,11 @@ public class ReadOrientationArtifact extends GenotypeAnnotation implements NonSt
         Utils.nonNull(gb);
         Utils.nonNull(vc);
         Utils.nonNull(likelihoods);
-        Utils.nonNull(artifactPriorCollection);
+
+        /** This case may happen when for instance {@link StandardArgumentDefinitions.ENABLE_ALL_ANNOTATIONS} is turned on **/
+        if (artifactPriorCollection == null){
+            return;
+        }
 
         // As of June 2018, genotype is hom ref iff we have the normal sample, but this may change in the future
         if (g.isHomRef() || !vc.isSNP() ){
