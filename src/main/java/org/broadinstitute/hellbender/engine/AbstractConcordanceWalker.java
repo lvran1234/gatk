@@ -77,7 +77,7 @@ public abstract class AbstractConcordanceWalker extends GATKTool {
         }
 
         if (truthVariants == null) {
-            truthVariants = new FeatureDataSource<>(new FeatureInput<>(truthVariantsFile, "truth"), CACHE_LOOKAHEAD, VariantContext.class);
+            truthVariants = new FeatureDataSource<>(new FeatureInput<>(truthVariantsFile, "truth"), CACHE_LOOKAHEAD, VariantContext.class, cloudPrefetchBuffer, cloudIndexPrefetchBuffer);
         }
     }
 
